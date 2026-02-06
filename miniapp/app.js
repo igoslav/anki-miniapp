@@ -12,6 +12,7 @@ let reviewQueue = [];
 let currentReviewIndex = 0;
 let isFlipped = false;
 let sessionStats = { reviewed: 0, again: 0, good: 0 };
+let isReversed = false; // true = show translation on front
 let parsedCSVCards = [];
 
 // Touch state
@@ -370,6 +371,14 @@ async function deleteCard(cardId) {
 }
 
 // --- Review Flow ---
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 function startReview() {
   const now = new Date();
   reviewQueue = activeCards.filter(c => new Date(c.srs.nextReview) <= now);
@@ -379,6 +388,7 @@ function startReview() {
     return;
   }
 
+  shuffle(reviewQueue);
   currentReviewIndex = 0;
   sessionStats = { reviewed: 0, again: 0, good: 0 };
   isFlipped = false;
@@ -395,11 +405,12 @@ function showCurrentCard() {
   }
 
   const card = reviewQueue[currentReviewIndex];
+  isReversed = Math.random() < 0.5;
 
-  // Front
-  document.getElementById('cardWord').textContent = card.front.word;
+  // Front side
+  document.getElementById('cardWord').textContent = isReversed ? card.back.translation : card.front.word;
   const imgEl = document.getElementById('cardImage');
-  if (card.front.imageUrl) {
+  if (!isReversed && card.front.imageUrl) {
     imgEl.src = card.front.imageUrl;
     imgEl.classList.remove('hidden');
   } else {
@@ -407,8 +418,8 @@ function showCurrentCard() {
     imgEl.src = '';
   }
 
-  // Back
-  document.getElementById('cardTranslation').textContent = card.back.translation;
+  // Back side
+  document.getElementById('cardTranslation').textContent = isReversed ? card.front.word : card.back.translation;
   const exEl = document.getElementById('cardExample');
   if (card.back.example) {
     exEl.textContent = card.back.example;
