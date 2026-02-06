@@ -21,7 +21,7 @@ bot.onText(/\/start/, (msg) => {
     {
       reply_markup: {
         inline_keyboard: [[{
-          text: 'Open Anki Cards',
+          text: 'Open Pepe App',
           web_app: { url: `${process.env.MINIAPP_URL}?user_id=${userId}` }
         }]]
       }
