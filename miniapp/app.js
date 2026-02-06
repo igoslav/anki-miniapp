@@ -111,7 +111,7 @@ function showScreen(screenId) {
 
   // Screen-specific setup
   if (screenId === 'cardListScreen') renderCardList();
-  if (screenId === 'homeScreen') { activeCards = getActiveCards(); updateHomeScreen(); }
+  if (screenId === 'homeScreen') loadUserData();
   if (screenId === 'settingsScreen') renderSettings();
 
   haptic('light');
