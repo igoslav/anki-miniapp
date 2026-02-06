@@ -5,543 +5,82 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Anki Cards</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: var(--tg-theme-bg-color, #ffffff);
-      color: var(--tg-theme-text-color, #000000);
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    /* Screens */
-    .screen {
-      display: none;
-      min-height: 100vh;
-      padding: 20px;
-      animation: fadeIn 0.3s ease;
-    }
-
-    .screen.active {
-      display: flex;
-      flex-direction: column;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Home Screen */
-    .home-header {
-      text-align: center;
-      padding: 40px 0 30px;
-    }
-
-    .home-header h1 {
-      font-size: 32px;
-      margin-bottom: 10px;
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin: 20px 0;
-    }
-
-    .stat-card {
-      background: var(--tg-theme-secondary-bg-color, #f0f0f0);
-      padding: 20px;
-      border-radius: 16px;
-      text-align: center;
-    }
-
-    .stat-value {
-      font-size: 28px;
-      font-weight: bold;
-      color: var(--tg-theme-button-color, #3390ec);
-    }
-
-    .stat-label {
-      font-size: 12px;
-      color: var(--tg-theme-hint-color, #999);
-      margin-top: 5px;
-    }
-
-    .action-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-top: 20px;
-    }
-
-    .btn {
-      padding: 18px 24px;
-      border: none;
-      border-radius: 16px;
-      font-size: 17px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .btn:active {
-      transform: scale(0.98);
-    }
-
-    .btn-primary {
-      background: var(--tg-theme-button-color, #3390ec);
-      color: var(--tg-theme-button-text-color, #fff);
-      box-shadow: 0 4px 20px rgba(51, 144, 236, 0.4);
-    }
-
-    .btn-secondary {
-      background: var(--tg-theme-secondary-bg-color, #f0f0f0);
-      color: var(--tg-theme-text-color, #000);
-    }
-
-    .btn-large {
-      font-size: 20px;
-      padding: 24px;
-    }
-
-    /* Add Card Screen */
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    .form-label {
-      display: block;
-      font-size: 14px;
-      font-weight: 600;
-      margin-bottom: 8px;
-      color: var(--tg-theme-text-color);
-    }
-
-    .form-input {
-      width: 100%;
-      padding: 16px;
-      border: 2px solid var(--tg-theme-secondary-bg-color, #f0f0f0);
-      border-radius: 12px;
-      font-size: 16px;
-      background: var(--tg-theme-bg-color);
-      color: var(--tg-theme-text-color);
-      font-family: inherit;
-    }
-
-    .form-input:focus {
-      outline: none;
-      border-color: var(--tg-theme-button-color, #3390ec);
-    }
-
-    /* Card List Screen */
-    .card-list {
-      flex: 1;
-      overflow-y: auto;
-    }
-
-    .list-item {
-      background: var(--tg-theme-secondary-bg-color, #f0f0f0);
-      padding: 16px;
-      border-radius: 12px;
-      margin-bottom: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .list-item-content {
-      flex: 1;
-    }
-
-    .list-item-word {
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-
-    .list-item-translation {
-      font-size: 14px;
-      color: var(--tg-theme-hint-color, #999);
-    }
-
-    .list-item-status {
-      font-size: 24px;
-    }
-
-    .delete-btn {
-      background: #ff6b6b;
-      color: white;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 8px;
-      margin-left: 10px;
-      cursor: pointer;
-    }
-
-    /* Learn Screen */
-    .learn-container {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .progress-bar {
-      width: 100%;
-      height: 4px;
-      background: var(--tg-theme-secondary-bg-color, #f0f0f0);
-      border-radius: 2px;
-      margin-bottom: 20px;
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: var(--tg-theme-button-color, #3390ec);
-      transition: width 0.3s ease;
-    }
-
-    .progress-text {
-      text-align: center;
-      font-size: 14px;
-      color: var(--tg-theme-hint-color, #999);
-      margin-bottom: 20px;
-    }
-
-    .card-container {
-      width: 100%;
-      max-width: 400px;
-      height: 400px;
-      perspective: 1000px;
-      margin: 20px 0;
-      position: relative;
-    }
-
-    .flashcard {
-      width: 100%;
-      height: 100%;
-      position: relative;
-      transition: transform 0.6s;
-      transform-style: preserve-3d;
-      cursor: pointer;
-    }
-
-    .flashcard.flipped {
-      transform: rotateY(180deg);
-    }
-
-    .flashcard.swipe-left {
-      animation: swipeLeft 0.4s ease-out forwards;
-    }
-
-    .flashcard.swipe-right {
-      animation: swipeRight 0.4s ease-out forwards;
-    }
-
-    @keyframes swipeLeft {
-      to {
-        transform: translateX(-200%) rotate(-30deg);
-        opacity: 0;
-      }
-    }
-
-    @keyframes swipeRight {
-      to {
-        transform: translateX(200%) rotate(30deg);
-        opacity: 0;
-      }
-    }
-
-    .card-face {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      backface-visibility: hidden;
-      border-radius: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 40px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    }
-
-    .card-front {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-
-    .card-back {
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-      transform: rotateY(180deg);
-    }
-
-    .card-text {
-      font-size: 36px;
-      font-weight: 700;
-      color: white;
-      text-align: center;
-      word-wrap: break-word;
-      line-height: 1.4;
-    }
-
-    .tap-hint {
-      text-align: center;
-      font-size: 14px;
-      color: var(--tg-theme-hint-color, #999);
-      margin: 20px 0;
-    }
-
-    .swipe-hint {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 10px;
-      padding: 0 20px;
-    }
-
-    .swipe-hint-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 14px;
-      color: var(--tg-theme-hint-color, #999);
-    }
-
-    .action-buttons-learn {
-      display: flex;
-      gap: 15px;
-      margin-top: 20px;
-      width: 100%;
-      max-width: 400px;
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-
-    .action-buttons-learn.visible {
-      opacity: 1;
-    }
-
-    .btn-repeat {
-      background: #ff6b6b;
-      color: white;
-      flex: 1;
-      box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
-    }
-
-    .btn-learned {
-      background: #51cf66;
-      color: white;
-      flex: 1;
-      box-shadow: 0 4px 15px rgba(81, 207, 102, 0.4);
-    }
-
-    .swipe-indicators {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 60px;
-      opacity: 0;
-      transition: opacity 0.2s;
-      pointer-events: none;
-      z-index: 10;
-    }
-
-    .swipe-indicators.left {
-      left: -80px;
-    }
-
-    .swipe-indicators.right {
-      right: -80px;
-    }
-
-    .swipe-indicators.visible {
-      opacity: 0.6;
-    }
-
-    /* Complete Screen */
-    .complete-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-    }
-
-    .complete-icon {
-      font-size: 100px;
-      margin-bottom: 30px;
-      animation: bounce 0.6s ease;
-    }
-
-    @keyframes bounce {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-20px); }
-    }
-
-    .complete-title {
-      font-size: 32px;
-      font-weight: bold;
-      margin-bottom: 15px;
-    }
-
-    .complete-stats {
-      background: var(--tg-theme-secondary-bg-color, #f0f0f0);
-      padding: 25px;
-      border-radius: 20px;
-      margin: 20px 0;
-      width: 100%;
-      max-width: 300px;
-    }
-
-    .complete-stat {
-      display: flex;
-      justify-content: space-between;
-      font-size: 18px;
-      margin: 10px 0;
-    }
-
-    .complete-stat-value {
-      font-weight: bold;
-      color: var(--tg-theme-button-color, #3390ec);
-    }
-
-    /* Empty State */
-    .empty-state {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 40px;
-    }
-
-    .empty-icon {
-      font-size: 80px;
-      margin-bottom: 20px;
-      opacity: 0.5;
-    }
-
-    .empty-title {
-      font-size: 24px;
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
-
-    .empty-text {
-      color: var(--tg-theme-hint-color, #999);
-      margin-bottom: 30px;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+  <!-- Header -->
+  <div class="app-header" id="appHeader">
+    <button class="lang-selector" id="langSelector" onclick="toggleLangDropdown()">
+      <span id="langSelectorText">Select Language</span>
+      <span class="lang-selector-arrow">&#9660;</span>
+    </button>
+    <button class="settings-btn" onclick="showScreen('settingsScreen')">&#9881;</button>
+    <!-- Language pair dropdown -->
+    <div class="lp-dropdown" id="lpDropdown"></div>
+  </div>
+
   <!-- Home Screen -->
   <div id="homeScreen" class="screen active">
     <div class="home-header">
-      <h1>🎴 Anki Cards</h1>
-      <p style="color: var(--tg-theme-hint-color);">Learn vocabulary with flashcards</p>
+      <h1>Anki Cards</h1>
+      <p class="home-subtitle">Learn vocabulary with spaced repetition</p>
+    </div>
+
+    <div id="dueBadge" class="due-badge hidden">
+      <span id="dueCount">0</span> cards due
     </div>
 
     <div class="stats-grid">
       <div class="stat-card">
-        <div class="stat-value" id="totalCards">0</div>
+        <div class="stat-value" id="statTotal">0</div>
         <div class="stat-label">Total</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value" id="learnedCards">0</div>
-        <div class="stat-label">Learned</div>
+        <div class="stat-value" id="statDue">0</div>
+        <div class="stat-label">Due</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value" id="learningCards">0</div>
-        <div class="stat-label">Learning</div>
+        <div class="stat-value" id="statMastered">0</div>
+        <div class="stat-label">Mastered</div>
       </div>
     </div>
 
     <div class="action-buttons">
-      <button class="btn btn-primary btn-large" onclick="startLearning()">
-        <span>📚</span>
-        <span>Start Learning</span>
+      <button class="btn btn-primary btn-large" onclick="startReview()">
+        <span>Start Review</span>
       </button>
-      <button class="btn btn-secondary" onclick="showScreen('addScreen')">
-        <span>➕</span>
-        <span>Add New Card</span>
+      <button class="btn btn-secondary" onclick="showScreen('importScreen')">
+        <span>Import CSV</span>
       </button>
-      <button class="btn btn-secondary" onclick="showScreen('listScreen')">
-        <span>📋</span>
-        <span>My Cards</span>
+      <button class="btn btn-secondary" onclick="showScreen('exportScreen')">
+        <span>Export Backup</span>
       </button>
     </div>
   </div>
 
-  <!-- Add Card Screen -->
-  <div id="addScreen" class="screen">
-    <h2 style="margin-bottom: 30px;">➕ Add New Card</h2>
-    
-    <form id="addCardForm">
-      <div class="form-group">
-        <label class="form-label">Word or Phrase</label>
-        <input type="text" class="form-input" id="wordInput" placeholder="e.g., hello" required>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Translation</label>
-        <input type="text" class="form-input" id="translationInput" placeholder="e.g., привет" required>
-      </div>
-
-      <button type="submit" class="btn btn-primary" style="width: 100%;">
-        <span>✅</span>
-        <span>Add Card</span>
-      </button>
-    </form>
-  </div>
-
-  <!-- Card List Screen -->
-  <div id="listScreen" class="screen">
-    <h2 style="margin-bottom: 20px;">📋 My Cards</h2>
-    <div id="cardList" class="card-list"></div>
-    <div id="emptyList" class="empty-state" style="display: none;">
-      <div class="empty-icon">📭</div>
-      <div class="empty-title">No cards yet</div>
-      <div class="empty-text">Add your first card to start learning!</div>
-      <button class="btn btn-primary" onclick="showScreen('addScreen')">
-        <span>➕</span>
-        <span>Add Card</span>
-      </button>
-    </div>
-  </div>
-
-  <!-- Learn Screen -->
-  <div id="learnScreen" class="screen">
+  <!-- Review Screen -->
+  <div id="reviewScreen" class="screen">
     <div class="progress-bar">
       <div id="progressFill" class="progress-fill"></div>
     </div>
     <div class="progress-text">
-      <span id="currentIndex">1</span> / <span id="totalToLearn">0</span>
+      <span id="reviewCurrent">1</span> / <span id="reviewTotal">0</span>
     </div>
 
-    <div class="learn-container">
-      <div class="card-container">
-        <div class="swipe-indicators left">🔄</div>
-        <div class="swipe-indicators right">✅</div>
+    <div class="review-container">
+      <div class="card-container" id="cardContainer">
+        <div class="swipe-indicators left">&#128260;</div>
+        <div class="swipe-indicators right">&#9989;</div>
         <div id="flashcard" class="flashcard" onclick="flipCard()">
           <div class="card-face card-front">
-            <div class="card-text" id="cardFront">Word</div>
+            <div class="card-word" id="cardWord">Word</div>
+            <img class="card-image hidden" id="cardImage" src="" alt="">
           </div>
           <div class="card-face card-back">
-            <div class="card-text" id="cardBack">Translation</div>
+            <div class="card-translation" id="cardTranslation">Translation</div>
+            <p class="card-example hidden" id="cardExample"></p>
+            <span class="card-pronunciation hidden" id="cardPronunciation"></span>
           </div>
         </div>
       </div>
@@ -550,342 +89,199 @@
 
       <div class="swipe-hint">
         <div class="swipe-hint-item">
-          <span>👈</span>
-          <span>Swipe left to repeat</span>
+          <span>&#128072;</span>
+          <span>Swipe left = repeat</span>
         </div>
         <div class="swipe-hint-item">
-          <span>Swipe right to learn</span>
-          <span>👉</span>
+          <span>Swipe right = good</span>
+          <span>&#128073;</span>
         </div>
       </div>
 
-      <div id="actionButtonsLearn" class="action-buttons-learn">
-        <button class="btn btn-repeat" onclick="markCard('repeat')">
-          🔄 Repeat
+      <div class="rating-buttons" id="ratingButtons">
+        <button class="rate-btn again" onclick="rateCard(0)">
+          Again
+          <span class="rate-btn-label">&lt;1d</span>
         </button>
-        <button class="btn btn-learned" onclick="markCard('learned')">
-          ✅ Learned
+        <button class="rate-btn hard" onclick="rateCard(1)">
+          Hard
+          <span class="rate-btn-label">1d</span>
+        </button>
+        <button class="rate-btn good" onclick="rateCard(2)">
+          Good
+          <span class="rate-btn-label">3d</span>
+        </button>
+        <button class="rate-btn easy" onclick="rateCard(3)">
+          Easy
+          <span class="rate-btn-label">7d+</span>
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Complete Screen -->
+  <!-- Add Card Screen -->
+  <div id="addCardScreen" class="screen">
+    <h2 class="screen-title">Add New Card</h2>
+    <form id="addCardForm">
+      <div class="form-group">
+        <label class="form-label">Word *</label>
+        <input type="text" class="form-input" id="inputWord" placeholder="Foreign word" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Translation *</label>
+        <input type="text" class="form-input" id="inputTranslation" placeholder="Translation" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Example sentence</label>
+        <textarea class="form-textarea" id="inputExample" placeholder="Example sentence"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Pronunciation</label>
+        <input type="text" class="form-input" id="inputPronunciation" placeholder="Pronunciation / IPA">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Image URL</label>
+        <input type="url" class="form-input" id="inputImageUrl" placeholder="https://...">
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;">Save Card</button>
+    </form>
+  </div>
+
+  <!-- Card List Screen -->
+  <div id="cardListScreen" class="screen">
+    <h2 class="screen-title">My Cards</h2>
+    <div id="cardList" class="card-list"></div>
+    <div id="emptyCardList" class="empty-state hidden">
+      <div class="empty-icon">&#128237;</div>
+      <div class="empty-title">No cards yet</div>
+      <div class="empty-text">Add your first card to start learning!</div>
+      <button class="btn btn-primary" onclick="showScreen('addCardScreen')">Add Card</button>
+    </div>
+  </div>
+
+  <!-- Import Screen -->
+  <div id="importScreen" class="screen">
+    <h2 class="screen-title">Import CSV</h2>
+    <p style="color: var(--tg-theme-hint-color); margin-bottom: 16px; font-size: 14px;">
+      CSV format: word, translation, example, pronunciation, imageUrl<br>
+      First row must be the header.
+    </p>
+    <input type="file" id="csvFileInput" accept=".csv,.txt" class="hidden">
+    <button class="btn btn-primary" onclick="document.getElementById('csvFileInput').click()">
+      Choose CSV File
+    </button>
+    <div id="importPreview" class="import-preview hidden">
+      <div class="count" id="importCount">0</div>
+      <div>cards found</div>
+      <button class="btn btn-primary mt-16" onclick="confirmImport()">Import All</button>
+    </div>
+    <div id="importResult" class="import-result hidden"></div>
+  </div>
+
+  <!-- Export Screen -->
+  <div id="exportScreen" class="screen">
+    <h2 class="screen-title">Export Backup</h2>
+    <p style="color: var(--tg-theme-hint-color); margin-bottom: 20px; font-size: 14px;">
+      Download all your cards and settings as a JSON file.
+    </p>
+    <div class="action-buttons">
+      <button class="btn btn-primary" onclick="exportDownload()">Download JSON</button>
+      <button class="btn btn-secondary" onclick="exportToChat()">Send to Chat</button>
+    </div>
+    <div id="exportStatus" class="import-result hidden mt-16"></div>
+  </div>
+
+  <!-- Settings Screen -->
+  <div id="settingsScreen" class="screen">
+    <h2 class="screen-title">Settings</h2>
+
+    <div class="settings-section">
+      <div class="settings-section-title">Daily Reminder</div>
+      <div class="settings-row">
+        <span class="settings-row-label">Enabled</span>
+        <button class="toggle" id="toggleReminder" onclick="toggleReminder()"></button>
+      </div>
+      <div class="settings-row" id="reminderTimeRow">
+        <span class="settings-row-label">Time</span>
+        <div class="time-input">
+          <select id="reminderHour"></select>
+          <span>:</span>
+          <select id="reminderMinute"></select>
+        </div>
+      </div>
+      <div class="settings-row">
+        <span class="settings-row-label">Timezone</span>
+        <select id="timezoneSelect" class="form-select" style="width: auto; max-width: 180px; padding: 8px;"></select>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">Language Pairs</div>
+      <div id="settingsLpList"></div>
+      <button class="btn btn-secondary btn-small mt-10" onclick="openAddPairModal()">+ Add Language Pair</button>
+    </div>
+
+    <button class="btn btn-primary mt-16" onclick="saveSettings()">Save Settings</button>
+  </div>
+
+  <!-- Review Complete Screen -->
   <div id="completeScreen" class="screen">
     <div class="complete-content">
-      <div class="complete-icon">🎉</div>
+      <div class="complete-icon">&#127881;</div>
       <div class="complete-title">Session Complete!</div>
-      
       <div class="complete-stats">
         <div class="complete-stat">
-          <span>Cards Reviewed:</span>
+          <span>Reviewed:</span>
           <span class="complete-stat-value" id="statsReviewed">0</span>
         </div>
         <div class="complete-stat">
-          <span>✅ Learned:</span>
-          <span class="complete-stat-value" id="statsLearned">0</span>
+          <span>Again:</span>
+          <span class="complete-stat-value" id="statsAgain">0</span>
         </div>
         <div class="complete-stat">
-          <span>🔄 To Repeat:</span>
-          <span class="complete-stat-value" id="statsRepeat">0</span>
+          <span>Good/Easy:</span>
+          <span class="complete-stat-value" id="statsGood">0</span>
         </div>
       </div>
-
-      <button class="btn btn-primary" onclick="showScreen('homeScreen'); loadCards();">
-        🏠 Back to Home
-      </button>
+      <button class="btn btn-primary" onclick="showScreen('homeScreen')">Back to Home</button>
     </div>
   </div>
 
-  <script>
-    const tg = window.Telegram.WebApp;
-    tg.expand();
-    tg.ready();
+  <!-- Add Language Pair Modal -->
+  <div class="modal-overlay" id="addPairModal">
+    <div class="modal">
+      <div class="modal-title">Add Language Pair</div>
+      <form id="addPairForm">
+        <div class="form-group">
+          <label class="form-label">Source Language</label>
+          <input type="text" class="form-input" id="inputSourceLang" placeholder="e.g., Italian" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Target Language</label>
+          <input type="text" class="form-input" id="inputTargetLang" placeholder="e.g., Russian" required>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">Add Pair</button>
+        <button type="button" class="btn btn-secondary mt-10" style="width:100%;" onclick="closeAddPairModal()">Cancel</button>
+      </form>
+    </div>
+  </div>
 
-    const params = new URLSearchParams(window.location.search);
-    const userId = params.get('user_id');
+  <!-- Bottom Navigation -->
+  <div class="bottom-nav" id="bottomNav">
+    <button class="nav-tab active" data-screen="homeScreen" onclick="navTo('homeScreen')">
+      <span class="nav-tab-icon">&#128218;</span>
+      <span>Review</span>
+    </button>
+    <button class="nav-tab" data-screen="addCardScreen" onclick="navTo('addCardScreen')">
+      <span class="nav-tab-icon">&#10133;</span>
+      <span>Add</span>
+    </button>
+    <button class="nav-tab" data-screen="cardListScreen" onclick="navTo('cardListScreen')">
+      <span class="nav-tab-icon">&#128203;</span>
+      <span>Cards</span>
+    </button>
+  </div>
 
-    let allCards = [];
-    let learningCards = [];
-    let currentCardIndex = 0;
-    let isFlipped = false;
-    let sessionStats = { reviewed: 0, learned: 0, repeat: 0 };
-
-    // Touch handling
-    let touchStartX = 0;
-    let isDragging = false;
-
-    // Load cards from API
-    async function loadCards() {
-      try {
-        const response = await fetch(`/api/cards/${userId}`);
-        allCards = await response.json();
-        updateStats();
-      } catch (error) {
-        console.error('Error loading cards:', error);
-        tg.showAlert('Failed to load cards');
-      }
-    }
-
-    function updateStats() {
-      const total = allCards.length;
-      const learned = allCards.filter(c => c.status === 'learned').length;
-      const learning = allCards.filter(c => c.status === 'learning' || c.status === 'repeat').length;
-
-      document.getElementById('totalCards').textContent = total;
-      document.getElementById('learnedCards').textContent = learned;
-      document.getElementById('learningCards').textContent = learning;
-    }
-
-    // Screen navigation
-    function showScreen(screenId) {
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.getElementById(screenId).classList.add('active');
-
-      // Handle back button
-      if (screenId === 'homeScreen') {
-        tg.BackButton.hide();
-      } else {
-        tg.BackButton.show();
-      }
-
-      // Load data for specific screens
-      if (screenId === 'listScreen') {
-        renderCardList();
-      }
-
-      tg.HapticFeedback.impactOccurred('light');
-    }
-
-    tg.BackButton.onClick(() => showScreen('homeScreen'));
-
-    // Add card
-    document.getElementById('addCardForm').onsubmit = async (e) => {
-      e.preventDefault();
-      
-      const word = document.getElementById('wordInput').value.trim();
-      const translation = document.getElementById('translationInput').value.trim();
-
-      if (!word || !translation) return;
-
-      try {
-        const response = await fetch(`/api/cards/${userId}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ word, translation })
-        });
-
-        if (response.ok) {
-          tg.HapticFeedback.notificationOccurred('success');
-          tg.sendData(JSON.stringify({
-            action: 'card_added',
-            word,
-            translation
-          }));
-
-          document.getElementById('addCardForm').reset();
-          await loadCards();
-          showScreen('homeScreen');
-        }
-      } catch (error) {
-        console.error('Error adding card:', error);
-        tg.showAlert('Failed to add card');
-      }
-    };
-
-    // Render card list
-    function renderCardList() {
-      const listEl = document.getElementById('cardList');
-      const emptyEl = document.getElementById('emptyList');
-
-      if (allCards.length === 0) {
-        listEl.style.display = 'none';
-        emptyEl.style.display = 'flex';
-        return;
-      }
-
-      listEl.style.display = 'block';
-      emptyEl.style.display = 'none';
-
-      listEl.innerHTML = allCards.map(card => {
-        const emoji = card.status === 'learned' ? '✅' : card.status === 'repeat' ? '🔄' : '📖';
-        return `
-          <div class="list-item">
-            <div class="list-item-content">
-              <div class="list-item-word">${card.word}</div>
-              <div class="list-item-translation">${card.translation}</div>
-            </div>
-            <span class="list-item-status">${emoji}</span>
-            <button class="delete-btn" onclick="deleteCard(${card.id})">🗑️</button>
-          </div>
-        `;
-      }).join('');
-    }
-
-    async function deleteCard(cardId) {
-      tg.showConfirm('Delete this card?', async (confirmed) => {
-        if (confirmed) {
-          try {
-            await fetch(`/api/cards/${userId}/${cardId}`, { method: 'DELETE' });
-            tg.HapticFeedback.notificationOccurred('success');
-            await loadCards();
-            renderCardList();
-          } catch (error) {
-            tg.showAlert('Failed to delete card');
-          }
-        }
-      });
-    }
-
-    // Start learning
-    function startLearning() {
-      learningCards = allCards.filter(c => c.status !== 'learned');
-      
-      if (learningCards.length === 0) {
-        tg.showAlert('No cards to learn! Add some cards first.');
-        return;
-      }
-
-      currentCardIndex = 0;
-      sessionStats = { reviewed: 0, learned: 0, repeat: 0 };
-      isFlipped = false;
-
-      showScreen('learnScreen');
-      document.getElementById('totalToLearn').textContent = learningCards.length;
-      showCurrentCard();
-    }
-
-    function showCurrentCard() {
-      if (currentCardIndex >= learningCards.length) {
-        showCompleteScreen();
-        return;
-      }
-
-      const card = learningCards[currentCardIndex];
-      document.getElementById('cardFront').textContent = card.word;
-      document.getElementById('cardBack').textContent = card.translation;
-      document.getElementById('currentIndex').textContent = currentCardIndex + 1;
-
-      const progress = (currentCardIndex / learningCards.length) * 100;
-      document.getElementById('progressFill').style.width = progress + '%';
-
-      const flashcard = document.getElementById('flashcard');
-      flashcard.classList.remove('flipped', 'swipe-left', 'swipe-right');
-      isFlipped = false;
-
-      document.getElementById('tapHint').textContent = 'Tap card to flip';
-      document.getElementById('actionButtonsLearn').classList.remove('visible');
-
-      tg.HapticFeedback.impactOccurred('light');
-    }
-
-    function flipCard() {
-      if (isDragging) return;
-
-      const flashcard = document.getElementById('flashcard');
-      flashcard.classList.toggle('flipped');
-      isFlipped = !isFlipped;
-
-      if (isFlipped) {
-        document.getElementById('tapHint').textContent = 'Choose or swipe';
-        document.getElementById('actionButtonsLearn').classList.add('visible');
-      } else {
-        document.getElementById('tapHint').textContent = 'Tap card to flip';
-        document.getElementById('actionButtonsLearn').classList.remove('visible');
-      }
-
-      tg.HapticFeedback.impactOccurred('medium');
-    }
-
-    async function markCard(status) {
-      if (!isFlipped) return;
-
-      const card = learningCards[currentCardIndex];
-      const flashcard = document.getElementById('flashcard');
-
-      try {
-        await fetch(`/api/cards/${userId}/${card.id}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status })
-        });
-
-        sessionStats.reviewed++;
-        sessionStats[status === 'learned' ? 'learned' : 'repeat']++;
-
-        flashcard.classList.add(status === 'learned' ? 'swipe-right' : 'swipe-left');
-        tg.HapticFeedback.notificationOccurred(status === 'learned' ? 'success' : 'warning');
-
-        setTimeout(() => {
-          currentCardIndex++;
-          showCurrentCard();
-        }, 400);
-      } catch (error) {
-        tg.showAlert('Failed to update card');
-      }
-    }
-
-    function showCompleteScreen() {
-      document.getElementById('statsReviewed').textContent = sessionStats.reviewed;
-      document.getElementById('statsLearned').textContent = sessionStats.learned;
-      document.getElementById('statsRepeat').textContent = sessionStats.repeat;
-
-      showScreen('completeScreen');
-
-      tg.sendData(JSON.stringify({
-        action: 'session_complete',
-        stats: sessionStats
-      }));
-    }
-
-    // Touch events for swipe
-    const cardContainer = document.querySelector('.card-container');
-    const leftIndicator = document.querySelector('.swipe-indicators.left');
-    const rightIndicator = document.querySelector('.swipe-indicators.right');
-
-    cardContainer.addEventListener('touchstart', (e) => {
-      if (!isFlipped) return;
-      touchStartX = e.touches[0].clientX;
-      isDragging = false;
-    });
-
-    cardContainer.addEventListener('touchmove', (e) => {
-      if (!isFlipped) return;
-      const diff = e.touches[0].clientX - touchStartX;
-      
-      if (Math.abs(diff) > 10) isDragging = true;
-
-      if (diff < -50) {
-        leftIndicator.classList.add('visible');
-        rightIndicator.classList.remove('visible');
-      } else if (diff > 50) {
-        rightIndicator.classList.add('visible');
-        leftIndicator.classList.remove('visible');
-      } else {
-        leftIndicator.classList.remove('visible');
-        rightIndicator.classList.remove('visible');
-      }
-    });
-
-    cardContainer.addEventListener('touchend', (e) => {
-      if (!isFlipped || !isDragging) return;
-      
-      const diff = e.changedTouches[0].clientX - touchStartX;
-      
-      leftIndicator.classList.remove('visible');
-      rightIndicator.classList.remove('visible');
-
-      if (diff < -100) {
-        markCard('repeat');
-      } else if (diff > 100) {
-        markCard('learned');
-      }
-
-      isDragging = false;
-    });
-
-    // Initialize
-    loadCards();
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>

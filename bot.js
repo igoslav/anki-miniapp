@@ -1,36 +1,25 @@
 require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api');
-const express = require('express');
-const bodyParser = require('body-parser');
+const cron = require('node-cron');
+const db = require('./db');
 
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
-const app = express();
 
-// In-memory storage (use database in production)
-const userCards = new Map();
+console.log('Bot started');
 
-function getUserCards(userId) {
-  if (!userCards.has(userId)) {
-    userCards.set(userId, []);
-  }
-  return userCards.get(userId);
-}
-
-console.log('🤖 Anki Mini App Bot started!');
-
-// Single entry point - just launches the Mini App
+// /start command — open MiniApp
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
   const firstName = msg.from.first_name;
-  
+
   bot.sendMessage(
     chatId,
-    `Welcome ${firstName}! 🎴\n\nYour personal flashcard app.`,
+    `Welcome ${firstName}!\n\nYour personal flashcard app with spaced repetition.`,
     {
       reply_markup: {
         inline_keyboard: [[{
-          text: '🚀 Open Anki Cards',
+          text: 'Open Anki Cards',
           web_app: { url: `${process.env.MINIAPP_URL}?user_id=${userId}` }
         }]]
       }
@@ -38,93 +27,70 @@ bot.onText(/\/start/, (msg) => {
   );
 });
 
-// Handle notifications from Mini App
+// Handle web_app_data from MiniApp
 bot.on('web_app_data', (msg) => {
   const chatId = msg.chat.id;
-  const data = JSON.parse(msg.web_app_data.data);
-  
-  if (data.action === 'card_added') {
-    bot.sendMessage(chatId, `✅ Added: "${data.word}" → "${data.translation}"`);
-  } else if (data.action === 'session_complete') {
-    bot.sendMessage(
-      chatId,
-      `🎉 Session Complete!\n\n` +
-      `Reviewed: ${data.stats.reviewed}\n` +
-      `✅ Learned: ${data.stats.learned}\n` +
-      `🔄 To repeat: ${data.stats.repeat}`
-    );
+  try {
+    const data = JSON.parse(msg.web_app_data.data);
+    if (data.action === 'card_added') {
+      bot.sendMessage(chatId, `Added: "${data.word}" -> "${data.translation}"`);
+    } else if (data.action === 'session_complete') {
+      bot.sendMessage(
+        chatId,
+        `Session Complete!\n\n` +
+        `Reviewed: ${data.stats.reviewed}\n` +
+        `Learned: ${data.stats.learned}\n` +
+        `To repeat: ${data.stats.repeat}`
+      );
+    }
+  } catch (e) {
+    console.error('web_app_data parse error:', e);
   }
 });
 
-// API for Mini App
-app.use(bodyParser.json());
-app.use(express.static('miniapp'));
-
-// Get user's cards
-app.get('/api/cards/:userId', (req, res) => {
-  const userId = parseInt(req.params.userId);
-  const cards = getUserCards(userId);
-  res.json(cards);
-});
-
-// Add new card
-app.post('/api/cards/:userId', (req, res) => {
-  const userId = parseInt(req.params.userId);
-  const { word, translation } = req.body;
-  
-  const cards = getUserCards(userId);
-  const newCard = {
-    id: Date.now(),
-    word,
-    translation,
-    status: 'learning',
-    addedAt: new Date().toISOString(),
-    reviewCount: 0
-  };
-  
-  cards.push(newCard);
-  res.json({ success: true, card: newCard });
-});
-
-// Update card status
-app.post('/api/cards/:userId/:cardId', (req, res) => {
-  const userId = parseInt(req.params.userId);
-  const cardId = parseInt(req.params.cardId);
-  const { status } = req.body;
-  
-  const cards = getUserCards(userId);
-  const card = cards.find(c => c.id === cardId);
-  
-  if (card) {
-    card.status = status;
-    card.reviewCount = (card.reviewCount || 0) + 1;
-    res.json({ success: true, card });
-  } else {
-    res.status(404).json({ error: 'Card not found' });
+// Convert time to user's timezone
+function toUserTime(date, timezone) {
+  try {
+    const str = date.toLocaleString('en-US', { timeZone: timezone });
+    return new Date(str);
+  } catch {
+    return date;
   }
-});
+}
 
-// Delete card
-app.delete('/api/cards/:userId/:cardId', (req, res) => {
-  const userId = parseInt(req.params.userId);
-  const cardId = parseInt(req.params.cardId);
-  
-  const cards = getUserCards(userId);
-  const index = cards.findIndex(c => c.id === cardId);
-  
-  if (index !== -1) {
-    cards.splice(index, 1);
-    res.json({ success: true });
-  } else {
-    res.status(404).json({ error: 'Card not found' });
-  }
-});
+// Daily reminder cron — runs every minute
+cron.schedule('* * * * *', () => {
+  const allData = db.read();
+  const now = new Date();
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🌐 Mini App server on port ${PORT}`);
+  Object.entries(allData.users).forEach(([userId, user]) => {
+    if (!user.settings || !user.settings.dailyReminderEnabled) return;
+
+    const userNow = toUserTime(now, user.settings.timezone);
+    if (userNow.getHours() === user.settings.reminderHour &&
+        userNow.getMinutes() === user.settings.reminderMinute) {
+
+      const dueCards = user.cards.filter(c =>
+        c.languagePairId === user.activeLanguagePairId &&
+        new Date(c.srs.nextReview) <= now
+      );
+
+      if (dueCards.length > 0) {
+        bot.sendMessage(userId, `You have ${dueCards.length} cards to review!`, {
+          reply_markup: {
+            inline_keyboard: [[{
+              text: 'Start Review',
+              web_app: { url: `${process.env.MINIAPP_URL}?user_id=${userId}` }
+            }]]
+          }
+        });
+      }
+    }
+  });
 });
 
 bot.on('polling_error', (error) => {
-  console.error('Polling error:', error);
+  console.error('Polling error:', error.message);
 });
+
+module.exports = bot;
