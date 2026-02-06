@@ -53,9 +53,6 @@
       <button class="btn btn-secondary" onclick="showScreen('importScreen')">
         <span>Import CSV</span>
       </button>
-      <button class="btn btn-secondary" onclick="showScreen('exportScreen')">
-        <span>Export Backup</span>
-      </button>
     </div>
   </div>
 
@@ -185,18 +182,6 @@
     <div id="importResult" class="import-result hidden"></div>
   </div>
 
-  <!-- Export Screen -->
-  <div id="exportScreen" class="screen">
-    <h2 class="screen-title">Export Backup</h2>
-    <p style="color: var(--tg-theme-hint-color); margin-bottom: 20px; font-size: 14px;">
-      Download all your cards and settings as a JSON file.
-    </p>
-    <div class="action-buttons">
-      <button class="btn btn-primary" onclick="exportDownload()">Download JSON</button>
-      <button class="btn btn-secondary" onclick="exportToChat()">Send to Chat</button>
-    </div>
-    <div id="exportStatus" class="import-result hidden mt-16"></div>
-  </div>
 
   <!-- Settings Screen -->
   <div id="settingsScreen" class="screen">

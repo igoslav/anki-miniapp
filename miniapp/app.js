@@ -73,7 +73,7 @@ function getActiveCards() {
 
 // --- Navigation ---
 const mainScreens = ['homeScreen', 'addCardScreen', 'cardListScreen'];
-const allScreens = ['homeScreen', 'reviewScreen', 'addCardScreen', 'cardListScreen', 'importScreen', 'exportScreen', 'settingsScreen', 'completeScreen'];
+const allScreens = ['homeScreen', 'reviewScreen', 'addCardScreen', 'cardListScreen', 'importScreen', 'settingsScreen', 'completeScreen'];
 
 function showScreen(screenId) {
   allScreens.forEach(id => {
