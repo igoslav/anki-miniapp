@@ -48,13 +48,17 @@ app.put('/api/user/:userId/active-pair', (req, res) => {
 
 // Add single card
 app.post('/api/user/:userId/card', (req, res) => {
-  const { word, translation, example, pronunciation, imageUrl } = req.body;
+  const { word, translation, example, pronunciation, imageUrl, languagePairId } = req.body;
   if (!word || !translation) return res.status(400).json({ error: 'word and translation required' });
 
   const user = db.getUser(req.params.userId);
+  const pairId = languagePairId || user.activeLanguagePairId;
+  if (languagePairId && !user.languagePairs.find(p => p.id === languagePairId)) {
+    return res.status(400).json({ error: 'languagePairId not found' });
+  }
   const card = {
     id: 'card_' + Date.now(),
-    languagePairId: user.activeLanguagePairId,
+    languagePairId: pairId,
     front: {
       word,
       imageUrl: imageUrl || ''
@@ -79,10 +83,14 @@ app.post('/api/user/:userId/card', (req, res) => {
 
 // Bulk import cards
 app.post('/api/user/:userId/cards/import', (req, res) => {
-  const { cards } = req.body;
+  const { cards, languagePairId } = req.body;
   if (!Array.isArray(cards)) return res.status(400).json({ error: 'cards array required' });
 
   const user = db.getUser(req.params.userId);
+  const pairId = languagePairId || user.activeLanguagePairId;
+  if (languagePairId && !user.languagePairs.find(p => p.id === languagePairId)) {
+    return res.status(400).json({ error: 'languagePairId not found' });
+  }
   let imported = 0;
   let skipped = 0;
 
@@ -90,7 +98,7 @@ app.post('/api/user/:userId/cards/import', (req, res) => {
     if (!c.word || !c.translation) { skipped++; return; }
     user.cards.push({
       id: 'card_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-      languagePairId: user.activeLanguagePairId,
+      languagePairId: c.languagePairId || pairId,
       front: {
         word: c.word,
         imageUrl: c.imageUrl || c.imageurl || ''
