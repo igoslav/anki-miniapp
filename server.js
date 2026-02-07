@@ -16,6 +16,12 @@ app.get('/api/user/:userId', (req, res) => {
   res.json(user);
 });
 
+// List language pairs
+app.get('/api/user/:userId/language-pairs', (req, res) => {
+  const user = db.getUser(req.params.userId);
+  res.json({ languagePairs: user.languagePairs, activeLanguagePairId: user.activeLanguagePairId });
+});
+
 // Add language pair
 app.post('/api/user/:userId/language-pair', (req, res) => {
   const { source, target } = req.body;
