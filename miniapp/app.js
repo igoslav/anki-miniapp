@@ -398,6 +398,47 @@ function startReview() {
   showCurrentCard();
 }
 
+// Preview what interval each rating would produce (mirrors srs.js logic)
+function previewIntervals(card) {
+  const intervals = {};
+  for (let quality = 0; quality <= 3; quality++) {
+    const q = quality + 2;
+    let interval;
+    if (q < 3) {
+      interval = 1;
+    } else if (card.srs.repetitions === 0) {
+      if (q === 3) interval = 1;
+      else if (q === 4) interval = 3;
+      else interval = 7;
+    } else if (card.srs.repetitions === 1) {
+      if (q === 3) interval = 3;
+      else if (q === 4) interval = 6;
+      else interval = 8;
+    } else {
+      if (q === 3) interval = Math.max(1, Math.round(card.srs.interval * 1.2));
+      else if (q === 4) interval = Math.round(card.srs.interval * card.srs.easeFactor);
+      else interval = Math.round(card.srs.interval * card.srs.easeFactor * 1.3);
+    }
+    intervals[quality] = interval;
+  }
+  return intervals;
+}
+
+function formatInterval(days) {
+  if (days < 1) return '<1d';
+  if (days < 30) return days + 'd';
+  if (days < 365) return Math.round(days / 30) + 'mo';
+  return (days / 365).toFixed(1) + 'y';
+}
+
+function updateRatingLabels(card) {
+  const intervals = previewIntervals(card);
+  document.querySelector('.rate-btn.again .rate-btn-label').textContent = formatInterval(intervals[0]);
+  document.querySelector('.rate-btn.hard .rate-btn-label').textContent = formatInterval(intervals[1]);
+  document.querySelector('.rate-btn.good .rate-btn-label').textContent = formatInterval(intervals[2]);
+  document.querySelector('.rate-btn.easy .rate-btn-label').textContent = formatInterval(intervals[3]);
+}
+
 function showCurrentCard() {
   if (currentReviewIndex >= reviewQueue.length) {
     showCompleteScreen();
@@ -406,6 +447,7 @@ function showCurrentCard() {
 
   const card = reviewQueue[currentReviewIndex];
   isReversed = Math.random() < 0.5;
+  updateRatingLabels(card);
 
   // Front side
   document.getElementById('cardWord').textContent = isReversed ? card.back.translation : card.front.word;
