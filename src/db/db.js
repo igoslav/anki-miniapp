@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const DB_PATH = path.join(__dirname, 'data', 'db.json');
+const DB_PATH = path.join(__dirname, '..', '..', 'data', 'db.json');
 
 function read() {
   if (!fs.existsSync(DB_PATH)) return { users: {} };
@@ -9,7 +9,7 @@ function read() {
 }
 
 function write(data) {
-  fs.mkdirSync(path.join(__dirname, 'data'), { recursive: true });
+  fs.mkdirSync(path.join(__dirname, '..', '..', 'data'), { recursive: true });
   fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2));
 }
 

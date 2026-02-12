@@ -1,0 +1,25 @@
+/* Import Screen */
+.import-preview {
+  background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+  padding: 16px;
+  border-radius: 12px;
+  margin: 16px 0;
+  text-align: center;
+}
+
+.import-preview .count {
+  font-size: 32px;
+  font-weight: bold;
+  color: var(--tg-theme-button-color, #3390ec);
+}
+
+.import-result {
+  padding: 12px;
+  border-radius: 10px;
+  margin-top: 12px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.import-result.success { background: #d3f9d8; color: #2b8a3e; }
+.import-result.error { background: #ffe3e3; color: #c92a2a; }

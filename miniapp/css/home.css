@@ -1,0 +1,54 @@
+/* Home Screen */
+.home-header {
+  text-align: center;
+  padding: 30px 0 20px;
+}
+
+.home-header h1 {
+  font-size: 28px;
+  margin-bottom: 6px;
+}
+
+.home-subtitle {
+  color: var(--tg-theme-hint-color, #999);
+  font-size: 14px;
+}
+
+.due-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--tg-theme-button-color, #3390ec);
+  color: var(--tg-theme-button-text-color, #fff);
+  padding: 12px 24px;
+  border-radius: 20px;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 20px auto;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.stat-card {
+  background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+  padding: 16px;
+  border-radius: 16px;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--tg-theme-button-color, #3390ec);
+}
+
+.stat-label {
+  font-size: 11px;
+  color: var(--tg-theme-hint-color, #999);
+  margin-top: 4px;
+}
