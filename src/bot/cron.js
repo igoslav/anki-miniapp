@@ -1,6 +1,5 @@
 const cron = require('node-cron');
-const db = require('../db/db');
-const { performBackup } = require('../db/backup');
+const { User, Card } = require('../models');
 
 function toUserTime(date, timezone) {
   try {
@@ -13,39 +12,39 @@ function toUserTime(date, timezone) {
 
 function scheduleCronJobs(bot) {
   // Daily reminder cron — runs every minute
-  cron.schedule('* * * * *', () => {
-    const allData = db.read();
-    const now = new Date();
+  cron.schedule('* * * * *', async () => {
+    try {
+      const users = await User.find({ 'settings.dailyReminderEnabled': true });
+      const now = new Date();
 
-    Object.entries(allData.users).forEach(([userId, user]) => {
-      if (!user.settings || !user.settings.dailyReminderEnabled) return;
+      for (const user of users) {
+        const userNow = toUserTime(now, user.settings.timezone);
+        if (userNow.getHours() === user.settings.reminderHour &&
+            userNow.getMinutes() === user.settings.reminderMinute) {
 
-      const userNow = toUserTime(now, user.settings.timezone);
-      if (userNow.getHours() === user.settings.reminderHour &&
-          userNow.getMinutes() === user.settings.reminderMinute) {
+          const dueCount = user.activeLanguagePairId
+            ? await Card.countDocuments({
+                userId: user.telegramId,
+                languagePairId: user.activeLanguagePairId,
+                'srs.nextReview': { $lte: now }
+              })
+            : 0;
 
-        const dueCards = user.cards.filter(c =>
-          c.languagePairId === user.activeLanguagePairId &&
-          new Date(c.srs.nextReview) <= now
-        );
-
-        if (dueCards.length > 0) {
-          bot.sendMessage(userId, `You have ${dueCards.length} cards to review!`, {
-            reply_markup: {
-              inline_keyboard: [[{
-                text: 'Start Review',
-                web_app: { url: `${process.env.MINIAPP_URL}?user_id=${userId}` }
-              }]]
-            }
-          });
+          if (dueCount > 0) {
+            bot.sendMessage(user.telegramId, `You have ${dueCount} cards to review!`, {
+              reply_markup: {
+                inline_keyboard: [[{
+                  text: 'Start Review',
+                  web_app: { url: `${process.env.MINIAPP_URL}?user_id=${user.telegramId}` }
+                }]]
+              }
+            });
+          }
         }
       }
-    });
-  });
-
-  // Daily DB backup — runs at 3:00 AM server time
-  cron.schedule('0 3 * * *', () => {
-    performBackup();
+    } catch (err) {
+      console.error('Cron reminder error:', err);
+    }
   });
 }
 

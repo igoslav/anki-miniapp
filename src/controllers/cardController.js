@@ -1,62 +1,100 @@
-const db = require('../db/db');
-const { buildCardObject, bulkImport } = require('../services/cardService');
+const { Card, LanguagePair } = require('../models');
+const { serializeCard } = require('../services/serializers');
 
-function addCard(req, res) {
-  const { word, translation, example, pronunciation, imageUrl, languagePairId } = req.body;
-  if (!word || !translation) return res.status(400).json({ error: 'word and translation required' });
+async function addCard(req, res) {
+  try {
+    const { word, translation, example, pronunciation, imageUrl, languagePairId } = req.body;
+    if (!word || !translation) return res.status(400).json({ error: 'word and translation required' });
 
-  const user = db.getUser(req.params.userId);
-  const pairId = languagePairId || user.activeLanguagePairId;
-  if (languagePairId && !user.languagePairs.find(p => p.id === languagePairId)) {
-    return res.status(400).json({ error: 'languagePairId not found' });
+    const userId = req.params.userId;
+    const pairId = languagePairId || null;
+
+    if (pairId) {
+      const pair = await LanguagePair.findOne({ _id: pairId, userId });
+      if (!pair) return res.status(400).json({ error: 'languagePairId not found' });
+    }
+
+    const card = await Card.create({
+      userId,
+      languagePairId: pairId,
+      front: { word, imageUrl: imageUrl || '' },
+      back: { translation, example: example || '', pronunciation: pronunciation || '' }
+    });
+
+    res.json(serializeCard(card));
+  } catch (err) {
+    console.error('addCard error:', err);
+    res.status(500).json({ error: 'Internal server error' });
   }
-
-  const card = buildCardObject({ word, translation, example, pronunciation, imageUrl, languagePairId: pairId });
-  user.cards.push(card);
-  db.saveUser(req.params.userId, user);
-  res.json(card);
 }
 
-function importCards(req, res) {
-  const { cards, languagePairId } = req.body;
-  if (!Array.isArray(cards)) return res.status(400).json({ error: 'cards array required' });
+async function importCards(req, res) {
+  try {
+    const { cards, languagePairId } = req.body;
+    if (!Array.isArray(cards)) return res.status(400).json({ error: 'cards array required' });
 
-  const user = db.getUser(req.params.userId);
-  const pairId = languagePairId || user.activeLanguagePairId;
-  if (languagePairId && !user.languagePairs.find(p => p.id === languagePairId)) {
-    return res.status(400).json({ error: 'languagePairId not found' });
+    const userId = req.params.userId;
+    const pairId = languagePairId || null;
+
+    if (pairId) {
+      const pair = await LanguagePair.findOne({ _id: pairId, userId });
+      if (!pair) return res.status(400).json({ error: 'languagePairId not found' });
+    }
+
+    let imported = 0;
+    let skipped = 0;
+    const docs = [];
+
+    for (const c of cards) {
+      if (!c.word || !c.translation) { skipped++; continue; }
+      docs.push({
+        userId,
+        languagePairId: c.languagePairId || pairId,
+        front: { word: c.word, imageUrl: c.imageUrl || c.imageurl || '' },
+        back: { translation: c.translation, example: c.example || '', pronunciation: c.pronunciation || '' }
+      });
+      imported++;
+    }
+
+    if (docs.length > 0) await Card.insertMany(docs);
+    res.json({ imported, skipped });
+  } catch (err) {
+    console.error('importCards error:', err);
+    res.status(500).json({ error: 'Internal server error' });
   }
-
-  const { newCards, imported, skipped } = bulkImport(cards, pairId);
-  user.cards.push(...newCards);
-  db.saveUser(req.params.userId, user);
-  res.json({ imported, skipped });
 }
 
-function updateCard(req, res) {
-  const user = db.getUser(req.params.userId);
-  const card = user.cards.find(c => c.id === req.params.cardId);
-  if (!card) return res.status(404).json({ error: 'Card not found' });
+async function updateCard(req, res) {
+  try {
+    const userId = req.params.userId;
+    const card = await Card.findOne({ _id: req.params.cardId, userId });
+    if (!card) return res.status(404).json({ error: 'Card not found' });
 
-  const { word, translation, example, pronunciation, imageUrl } = req.body;
-  if (word !== undefined) card.front.word = word;
-  if (imageUrl !== undefined) card.front.imageUrl = imageUrl;
-  if (translation !== undefined) card.back.translation = translation;
-  if (example !== undefined) card.back.example = example;
-  if (pronunciation !== undefined) card.back.pronunciation = pronunciation;
+    const { word, translation, example, pronunciation, imageUrl } = req.body;
+    if (word !== undefined) card.front.word = word;
+    if (imageUrl !== undefined) card.front.imageUrl = imageUrl;
+    if (translation !== undefined) card.back.translation = translation;
+    if (example !== undefined) card.back.example = example;
+    if (pronunciation !== undefined) card.back.pronunciation = pronunciation;
 
-  db.saveUser(req.params.userId, user);
-  res.json(card);
+    await card.save();
+    res.json(serializeCard(card));
+  } catch (err) {
+    console.error('updateCard error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 }
 
-function deleteCard(req, res) {
-  const user = db.getUser(req.params.userId);
-  const index = user.cards.findIndex(c => c.id === req.params.cardId);
-  if (index === -1) return res.status(404).json({ error: 'Card not found' });
-
-  user.cards.splice(index, 1);
-  db.saveUser(req.params.userId, user);
-  res.json({ success: true });
+async function deleteCard(req, res) {
+  try {
+    const userId = req.params.userId;
+    const result = await Card.deleteOne({ _id: req.params.cardId, userId });
+    if (result.deletedCount === 0) return res.status(404).json({ error: 'Card not found' });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('deleteCard error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 }
 
 module.exports = { addCard, importCards, updateCard, deleteCard };

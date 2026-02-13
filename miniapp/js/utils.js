@@ -1,3 +1,8 @@
+// --- Telegram WebApp ---
+const tg = window.Telegram.WebApp;
+tg.expand();
+tg.ready();
+
 // --- Utility ---
 function escapeHtml(text) {
   const div = document.createElement('div');

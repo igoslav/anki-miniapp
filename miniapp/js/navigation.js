@@ -1,6 +1,6 @@
 // --- Navigation ---
 const mainScreens = ['homeScreen', 'addCardScreen', 'cardListScreen'];
-const allScreens = ['homeScreen', 'reviewScreen', 'addCardScreen', 'cardListScreen', 'importScreen', 'settingsScreen', 'completeScreen'];
+const allScreens = ['homeScreen', 'reviewScreen', 'addCardScreen', 'cardListScreen', 'importScreen', 'settingsScreen', 'completeScreen', 'tutorScreen', 'studentLessonsScreen'];
 
 function showScreen(screenId) {
   allScreens.forEach(id => {
@@ -40,6 +40,8 @@ function showScreen(screenId) {
   if (screenId === 'cardListScreen') renderCardList();
   if (screenId === 'homeScreen') loadUserData();
   if (screenId === 'settingsScreen') renderSettings();
+  if (screenId === 'tutorScreen') loadTutorDashboard();
+  if (screenId === 'studentLessonsScreen') { loadStudentLessonsScreen(); showStudentInvitations(); }
 
   haptic('light');
 }

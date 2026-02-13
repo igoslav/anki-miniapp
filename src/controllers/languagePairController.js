@@ -1,36 +1,52 @@
-const db = require('../db/db');
+const { User, LanguagePair } = require('../models');
+const { serializeLanguagePair } = require('../services/serializers');
 
-function listPairs(req, res) {
-  const user = db.getUser(req.params.userId);
-  res.json({ languagePairs: user.languagePairs, activeLanguagePairId: user.activeLanguagePairId });
+async function listPairs(req, res) {
+  try {
+    const userId = req.params.userId;
+    const user = await User.findOne({ telegramId: userId });
+    const pairs = await LanguagePair.find({ userId });
+    res.json({
+      languagePairs: pairs.map(serializeLanguagePair),
+      activeLanguagePairId: user && user.activeLanguagePairId ? String(user.activeLanguagePairId) : null
+    });
+  } catch (err) {
+    console.error('listPairs error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 }
 
-function addPair(req, res) {
-  const { source, target } = req.body;
-  if (!source || !target) return res.status(400).json({ error: 'source and target required' });
+async function addPair(req, res) {
+  try {
+    const { source, target } = req.body;
+    if (!source || !target) return res.status(400).json({ error: 'source and target required' });
 
-  const user = db.getUser(req.params.userId);
-  const pair = {
-    id: 'lp_' + Date.now(),
-    source,
-    target,
-    createdAt: new Date().toISOString()
-  };
-  user.languagePairs.push(pair);
-  user.activeLanguagePairId = pair.id;
-  db.saveUser(req.params.userId, user);
-  res.json(pair);
+    const userId = req.params.userId;
+    const pair = await LanguagePair.create({ userId, source, target });
+
+    await User.updateOne({ telegramId: userId }, { activeLanguagePairId: pair._id });
+
+    res.json(serializeLanguagePair(pair));
+  } catch (err) {
+    console.error('addPair error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 }
 
-function switchActivePair(req, res) {
-  const { languagePairId } = req.body;
-  const user = db.getUser(req.params.userId);
-  const exists = user.languagePairs.some(lp => lp.id === languagePairId);
-  if (!exists) return res.status(404).json({ error: 'Language pair not found' });
+async function switchActivePair(req, res) {
+  try {
+    const { languagePairId } = req.body;
+    const userId = req.params.userId;
 
-  user.activeLanguagePairId = languagePairId;
-  db.saveUser(req.params.userId, user);
-  res.json({ success: true });
+    const pair = await LanguagePair.findOne({ _id: languagePairId, userId });
+    if (!pair) return res.status(404).json({ error: 'Language pair not found' });
+
+    await User.updateOne({ telegramId: userId }, { activeLanguagePairId: pair._id });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('switchActivePair error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 }
 
 module.exports = { listPairs, addPair, switchActivePair };

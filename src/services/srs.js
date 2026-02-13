@@ -33,7 +33,7 @@ function updateSRS(card, quality) {
     card.srs.easeFactor + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02))
   );
 
-  card.srs.nextReview = new Date(Date.now() + card.srs.interval * 86400000).toISOString();
+  card.srs.nextReview = new Date(Date.now() + card.srs.interval * 86400000);
   return card;
 }
 

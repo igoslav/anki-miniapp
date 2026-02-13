@@ -1,11 +1,6 @@
-// --- Telegram WebApp ---
-const tg = window.Telegram.WebApp;
-tg.expand();
-tg.ready();
-
 // --- State ---
 const params = new URLSearchParams(window.location.search);
-const userId = params.get('user_id') || (tg.initDataUnsafe.user && tg.initDataUnsafe.user.id);
+const userId = (tg.initDataUnsafe.user && tg.initDataUnsafe.user.id) || params.get('user_id');
 let userData = null;
 let activeCards = [];
 let reviewQueue = [];
@@ -32,9 +27,23 @@ async function initApp() {
 
 async function loadUserData() {
   userData = await apiGet('');
+  if (!userData) return;
   activeCards = getActiveCards();
   updateHomeScreen();
   updateLangSelector();
+  updateRoleUI();
+  loadStudentInvitations();
+}
+
+function updateRoleUI() {
+  const tutorTab = document.getElementById('tutorNavTab');
+  if (tutorTab) {
+    tutorTab.style.display = (userData && userData.role === 'tutor') ? 'flex' : 'none';
+  }
+  const studentTab = document.getElementById('studentNavTab');
+  if (studentTab) {
+    studentTab.style.display = 'flex';
+  }
 }
 
 // --- Event Listeners ---
@@ -53,9 +62,13 @@ function setupEventListeners() {
     }
   });
 
-  // Close modal on overlay click
+  // Close modals on overlay click
   document.getElementById('addPairModal').addEventListener('click', (e) => {
     if (e.target === e.currentTarget) closeAddPairModal();
+  });
+  const sendModal = document.getElementById('sendLessonModal');
+  if (sendModal) sendModal.addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeSendLessonModal();
   });
 
   // Auto-detect timezone on first open

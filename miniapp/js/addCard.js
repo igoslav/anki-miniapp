@@ -115,7 +115,7 @@ async function addCard(e) {
     return;
   }
 
-  const card = await apiPost('/card', { word, translation, example, pronunciation, imageUrl });
+  const card = await apiPost('/card', { word, translation, example, pronunciation, imageUrl, languagePairId: userData.activeLanguagePairId });
   userData.cards.push(card);
   activeCards = getActiveCards();
 
