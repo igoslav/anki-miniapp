@@ -8,8 +8,8 @@ function updateSRS(card, quality) {
   const q = quality + 2; // map to SM-2 scale (2-5)
 
   if (q < 3) {
-    // Again: reset
-    card.srs.repetitions = 0;
+    // Again: reduce progress by one step (don't wipe all repetitions) and reset interval
+    card.srs.repetitions = Math.max(0, card.srs.repetitions - 1);
     card.srs.interval = 1;
   } else {
     if (card.srs.repetitions === 0) {
