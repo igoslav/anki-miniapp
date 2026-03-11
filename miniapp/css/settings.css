@@ -65,3 +65,60 @@
   color: var(--tg-theme-button-color, #3390ec);
   font-weight: 600;
 }
+
+/* Per-pair reminder controls */
+.lp-reminder-section {
+  padding: 10px 14px 14px;
+  background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+  border-radius: 12px;
+  margin-bottom: 6px;
+}
+
+.lp-reminder-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.lp-reminder-name {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.lp-reminder-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--tg-theme-hint-color, #999);
+}
+
+.day-picker {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.day-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: var(--tg-theme-bg-color, #fff);
+  color: var(--tg-theme-text-color, #000);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.day-btn.selected {
+  background: var(--tg-theme-button-color, #3390ec);
+  color: var(--tg-theme-button-text-color, #fff);
+}
+
+.lp-reminder-disabled .day-picker {
+  opacity: 0.4;
+  pointer-events: none;
+}
