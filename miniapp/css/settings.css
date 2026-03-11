@@ -32,6 +32,16 @@
   gap: 4px;
 }
 
+.time-picker {
+  padding: 6px 10px;
+  border: 1px solid var(--tg-theme-secondary-bg-color, #ddd);
+  border-radius: 8px;
+  font-size: 15px;
+  background: var(--tg-theme-bg-color);
+  color: var(--tg-theme-text-color);
+  -webkit-appearance: none;
+}
+
 .time-input select {
   padding: 6px 8px;
   border: 1px solid var(--tg-theme-secondary-bg-color, #ddd);
@@ -42,6 +52,23 @@
 }
 
 /* Language pair list in settings */
+.settings-lp-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+  border-radius: 12px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+  border: 2px solid transparent;
+}
+
+.settings-lp-item.active {
+  border-color: var(--tg-theme-button-color, #3390ec);
+}
+
 .lp-list-item {
   display: flex;
   align-items: center;

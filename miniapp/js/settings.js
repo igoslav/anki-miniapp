@@ -1,15 +1,5 @@
 // --- Settings ---
 function initSettings() {
-  // Populate hour/minute dropdowns
-  const hourSel = document.getElementById('reminderHour');
-  const minSel = document.getElementById('reminderMinute');
-  for (let h = 0; h < 24; h++) {
-    hourSel.innerHTML += `<option value="${h}">${String(h).padStart(2, '0')}</option>`;
-  }
-  for (let m = 0; m < 60; m += 5) {
-    minSel.innerHTML += `<option value="${m}">${String(m).padStart(2, '0')}</option>`;
-  }
-
   // Populate timezone dropdown with common timezones
   const tzSel = document.getElementById('timezoneSelect');
   const timezones = [
@@ -42,9 +32,11 @@ function renderSettings() {
   const toggle = document.getElementById('toggleReminder');
   toggle.classList.toggle('on', s.dailyReminderEnabled);
 
-  // Time
-  document.getElementById('reminderHour').value = s.reminderHour;
-  document.getElementById('reminderMinute').value = s.reminderMinute;
+  // Time input
+  const timeInput = document.getElementById('reminderTime');
+  const hh = String(s.reminderHour || 0).padStart(2, '0');
+  const mm = String(s.reminderMinute || 0).padStart(2, '0');
+  timeInput.value = `${hh}:${mm}`;
 
   // Timezone
   document.getElementById('timezoneSelect').value = s.timezone;
@@ -64,7 +56,7 @@ function renderSettings() {
         onclick="togglePairDay('${lp.id}', ${i}, this)">${label}</button>`
     ).join('');
     return `
-      <div class="lp-list-item ${isActive ? 'active' : ''}" onclick="switchPair('${lp.id}')">
+      <div class="settings-lp-item ${isActive ? 'active' : ''}" onclick="settingsSwitchPair('${lp.id}')">
         <span class="lp-list-item-name">${escapeHtml(lp.source)} → ${escapeHtml(lp.target)}</span>
         ${isActive ? '<span class="lp-active-badge">Active</span>' : ''}
       </div>
@@ -114,24 +106,54 @@ function togglePairDay(pairId, day, btn) {
   haptic('light');
 }
 
+async function settingsSwitchPair(pairId) {
+  if (userData.activeLanguagePairId === pairId) return;
+  await apiPut('/active-pair', { languagePairId: pairId });
+  userData.activeLanguagePairId = pairId;
+  activeCards = getActiveCards();
+  updateLangSelector();
+  updateHomeScreen();
+  renderSettings();
+  haptic('medium');
+}
+
 async function saveSettings() {
-  const settings = {
-    dailyReminderEnabled: userData.settings.dailyReminderEnabled,
-    reminderHour: parseInt(document.getElementById('reminderHour').value),
-    reminderMinute: parseInt(document.getElementById('reminderMinute').value),
-    timezone: document.getElementById('timezoneSelect').value
-  };
-  await apiPut('/settings', settings);
-  userData.settings = settings;
+  const saveBtn = document.querySelector('#settingsScreen .btn-primary.mt-16');
+  if (saveBtn) {
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving...';
+  }
 
-  // Save per-pair reminder settings
-  await Promise.all(userData.languagePairs.map(lp =>
-    apiPut(`/language-pair/${lp.id}/reminder`, {
-      reminderEnabled: lp.reminderEnabled !== false,
-      reminderDays: Array.isArray(lp.reminderDays) ? lp.reminderDays : [0,1,2,3,4,5,6]
-    })
-  ));
+  try {
+    // Parse time from input
+    const timeVal = document.getElementById('reminderTime').value;
+    const [hours, minutes] = timeVal.split(':').map(Number);
 
-  hapticNotify('success');
-  showScreen('homeScreen');
+    const settings = {
+      dailyReminderEnabled: userData.settings.dailyReminderEnabled,
+      reminderHour: hours,
+      reminderMinute: minutes,
+      timezone: document.getElementById('timezoneSelect').value
+    };
+    const savedSettings = await apiPut('/settings', settings);
+    userData.settings = { ...userData.settings, ...savedSettings };
+
+    // Save per-pair reminder settings
+    await Promise.all(userData.languagePairs.map(lp =>
+      apiPut(`/language-pair/${lp.id}/reminder`, {
+        reminderEnabled: lp.reminderEnabled !== false,
+        reminderDays: Array.isArray(lp.reminderDays) ? lp.reminderDays : [0,1,2,3,4,5,6]
+      })
+    ));
+
+    hapticNotify('success');
+    showScreen('homeScreen');
+  } catch (err) {
+    hapticNotify('error');
+  } finally {
+    if (saveBtn) {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Save Settings';
+    }
+  }
 }
