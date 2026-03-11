@@ -92,7 +92,7 @@ function toggleReminder() {
 function togglePairReminder(pairId, btn) {
   const pair = userData.languagePairs.find(lp => lp.id === pairId);
   if (!pair) return;
-  pair.reminderEnabled = pair.reminderEnabled === false; // toggle
+  pair.reminderEnabled = !(pair.reminderEnabled !== false); // toggle (treats undefined as true)
   btn.classList.toggle('on', pair.reminderEnabled);
   const section = document.getElementById('lpReminder_' + pairId);
   if (section) section.classList.toggle('lp-reminder-disabled', !pair.reminderEnabled);
