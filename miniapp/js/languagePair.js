@@ -34,6 +34,9 @@ async function switchPair(pairId) {
   updateLangSelector();
   updateHomeScreen();
   document.getElementById('lpDropdown').classList.remove('open');
+  if (document.getElementById('settingsScreen').classList.contains('active')) {
+    renderSettings();
+  }
   haptic('medium');
 }
 
@@ -62,5 +65,8 @@ async function addLanguagePair(e) {
   closeAddPairModal();
   updateLangSelector();
   updateHomeScreen();
+  if (document.getElementById('settingsScreen').classList.contains('active')) {
+    renderSettings();
+  }
   hapticNotify('success');
 }

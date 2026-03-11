@@ -201,7 +201,7 @@
         <span class="settings-row-label">Enabled</span>
         <button class="toggle" id="toggleReminder" onclick="toggleReminder()"></button>
       </div>
-      <div class="settings-row" id="reminderTimeRow">
+      <div class="settings-row">
         <span class="settings-row-label">Time</span>
         <div class="time-input">
           <select id="reminderHour"></select>
@@ -213,6 +213,12 @@
         <span class="settings-row-label">Timezone</span>
         <select id="timezoneSelect" class="form-select" style="width: auto; max-width: 180px; padding: 8px;"></select>
       </div>
+    </div>
+
+    <div class="settings-section" id="scheduleSection">
+      <div class="settings-section-title">Notification Schedule</div>
+      <p class="settings-hint" id="scheduleHint">Choose which days each language pair sends reminders.</p>
+      <div id="pairScheduleList"></div>
     </div>
 
     <div class="settings-section">
