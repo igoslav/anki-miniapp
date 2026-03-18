@@ -3,9 +3,13 @@ function startReview() {
   const now = new Date();
   reviewQueue = activeCards.filter(c => new Date(c.srs.nextReview) <= now);
 
+  // If no due cards, review all active cards ("Start Again" mode)
   if (reviewQueue.length === 0) {
-    tg.showAlert('No cards due for review!');
-    return;
+    if (activeCards.length === 0) {
+      tg.showAlert('No cards to review! Add some cards first.');
+      return;
+    }
+    reviewQueue = activeCards.slice();
   }
 
   shuffle(reviewQueue);

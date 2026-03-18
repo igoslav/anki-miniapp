@@ -15,6 +15,16 @@ function updateHomeScreen() {
   } else {
     dueBadge.classList.add('hidden');
   }
+
+  // Update review button: "Start Again" when no due cards but cards exist
+  const reviewBtn = document.getElementById('startReviewBtn');
+  if (reviewBtn) {
+    if (dueCards.length === 0 && activeCards.length > 0) {
+      reviewBtn.querySelector('span').textContent = 'Start Again';
+    } else {
+      reviewBtn.querySelector('span').textContent = 'Start Review';
+    }
+  }
 }
 
 function getActiveCards() {
