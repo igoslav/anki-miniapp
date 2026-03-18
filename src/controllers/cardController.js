@@ -59,4 +59,20 @@ function deleteCard(req, res) {
   res.json({ success: true });
 }
 
-module.exports = { addCard, importCards, updateCard, deleteCard };
+function resetProgress(req, res) {
+  const user = db.getUser(req.params.userId);
+  const card = user.cards.find(c => c.id === req.params.cardId);
+  if (!card) return res.status(404).json({ error: 'Card not found' });
+
+  card.srs = {
+    interval: 0,
+    easeFactor: 2.5,
+    nextReview: new Date().toISOString(),
+    repetitions: 0
+  };
+
+  db.saveUser(req.params.userId, user);
+  res.json(card);
+}
+
+module.exports = { addCard, importCards, updateCard, deleteCard, resetProgress };

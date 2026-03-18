@@ -16,6 +16,7 @@ function renderCardList() {
     const nextReview = new Date(card.srs.nextReview);
     const isDue = nextReview <= new Date();
     const statusText = isDue ? 'Due' : `${card.srs.interval}d`;
+    const hasProgress = card.srs.repetitions > 0 || card.srs.interval > 0;
     return `
       <div class="list-item">
         <div class="list-item-content">
@@ -24,6 +25,7 @@ function renderCardList() {
         </div>
         <div class="list-item-actions">
           <span style="font-size:12px;color:var(--tg-theme-hint-color);min-width:30px;text-align:center;">${statusText}</span>
+          ${hasProgress ? `<button class="reset-btn" onclick="resetCardProgress('${card.id}')" title="Reset progress">&#8635;</button>` : ''}
           <button class="delete-btn" onclick="deleteCard('${card.id}')">&#128465;</button>
         </div>
       </div>
@@ -36,6 +38,18 @@ async function deleteCard(cardId) {
     if (!confirmed) return;
     await apiDelete(`/card/${cardId}`);
     userData.cards = userData.cards.filter(c => c.id !== cardId);
+    activeCards = getActiveCards();
+    renderCardList();
+    hapticNotify('success');
+  });
+}
+
+async function resetCardProgress(cardId) {
+  tg.showConfirm('Reset progress for this card? It will be due for review immediately.', async (confirmed) => {
+    if (!confirmed) return;
+    const updated = await apiPut(`/card/${cardId}/reset`, {});
+    const idx = userData.cards.findIndex(c => c.id === cardId);
+    if (idx !== -1) userData.cards[idx] = updated;
     activeCards = getActiveCards();
     renderCardList();
     hapticNotify('success');
