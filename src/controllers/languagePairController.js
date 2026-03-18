@@ -39,9 +39,10 @@ function updatePairReminder(req, res) {
   const pair = user.languagePairs.find(lp => lp.id === pairId);
   if (!pair) return res.status(404).json({ error: 'Language pair not found' });
 
-  const { reminderEnabled, reminderDays } = req.body;
+  const { reminderEnabled, reminderDays, cardOrder } = req.body;
   if (reminderEnabled !== undefined) pair.reminderEnabled = reminderEnabled;
   if (Array.isArray(reminderDays)) pair.reminderDays = reminderDays;
+  if (cardOrder !== undefined) pair.cardOrder = cardOrder;
 
   db.saveUser(req.params.userId, user);
   res.json(pair);

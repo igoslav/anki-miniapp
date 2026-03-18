@@ -15,10 +15,6 @@ let sessionStats = { reviewed: 0, again: 0, good: 0 };
 let isReversed = false; // true = show translation on front
 let parsedCSVCards = [];
 
-// Touch state
-let touchStartX = 0;
-let isDragging = false;
-
 // --- Init ---
 async function initApp() {
   if (!userId) {
@@ -42,7 +38,6 @@ function setupEventListeners() {
   document.getElementById('addCardForm').addEventListener('submit', addCard);
   document.getElementById('addPairForm').addEventListener('submit', addLanguagePair);
   document.getElementById('csvFileInput').addEventListener('change', handleCSVFile);
-  setupSwipeHandlers();
 
   // Close dropdown when tapping outside
   document.addEventListener('click', (e) => {

@@ -137,36 +137,6 @@
   margin: 12px 0;
 }
 
-.swipe-hint {
-  display: flex;
-  justify-content: space-between;
-  padding: 0 16px;
-  margin-bottom: 12px;
-}
-
-.swipe-hint-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: var(--tg-theme-hint-color, #999);
-}
-
-.swipe-indicators {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 50px;
-  opacity: 0;
-  transition: opacity 0.2s;
-  pointer-events: none;
-  z-index: 10;
-}
-
-.swipe-indicators.left { left: -70px; }
-.swipe-indicators.right { right: -70px; }
-.swipe-indicators.visible { opacity: 0.6; }
-
 /* Rating Buttons */
 .rating-buttons {
   display: flex;
