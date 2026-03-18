@@ -75,8 +75,6 @@
 
     <div class="review-container">
       <div class="card-container" id="cardContainer">
-        <div class="swipe-indicators left">&#128260;</div>
-        <div class="swipe-indicators right">&#9989;</div>
         <div id="flashcard" class="flashcard" onclick="flipCard()">
           <div class="card-face card-front">
             <div class="card-word" id="cardWord">Word</div>
@@ -91,17 +89,6 @@
       </div>
 
       <div class="tap-hint" id="tapHint">Tap card to flip</div>
-
-      <div class="swipe-hint">
-        <div class="swipe-hint-item">
-          <span>&#128072;</span>
-          <span>Swipe left = repeat</span>
-        </div>
-        <div class="swipe-hint-item">
-          <span>Swipe right = good</span>
-          <span>&#128073;</span>
-        </div>
-      </div>
 
       <div class="rating-buttons" id="ratingButtons">
         <button class="rate-btn again" onclick="rateCard(0)">
@@ -288,7 +275,6 @@
   <script src="js/addCard.js"></script>
   <script src="js/cardList.js"></script>
   <script src="js/review.js"></script>
-  <script src="js/swipe.js"></script>
   <script src="js/import.js"></script>
   <script src="js/export.js"></script>
   <script src="js/settings.js"></script>

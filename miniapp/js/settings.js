@@ -69,6 +69,14 @@ function renderSettings() {
           </div>
         </div>
         <div class="day-picker">${dayBtns}</div>
+        <div class="settings-row lp-card-order-row">
+          <span class="settings-row-label">Card side</span>
+          <select class="form-select lp-card-order-select" style="width:auto;padding:6px 8px;" onchange="setPairCardOrder('${lp.id}', this.value)">
+            <option value="random" ${(lp.cardOrder || 'random') === 'random' ? 'selected' : ''}>Random</option>
+            <option value="foreign-first" ${lp.cardOrder === 'foreign-first' ? 'selected' : ''}>Foreign word first</option>
+            <option value="translated-first" ${lp.cardOrder === 'translated-first' ? 'selected' : ''}>Translation first</option>
+          </select>
+        </div>
       </div>
     `;
   }).join('');
@@ -106,6 +114,13 @@ function togglePairDay(pairId, day, btn) {
   haptic('light');
 }
 
+function setPairCardOrder(pairId, value) {
+  const pair = userData.languagePairs.find(lp => lp.id === pairId);
+  if (!pair) return;
+  pair.cardOrder = value;
+  haptic('light');
+}
+
 async function settingsSwitchPair(pairId) {
   if (userData.activeLanguagePairId === pairId) return;
   await apiPut('/active-pair', { languagePairId: pairId });
@@ -138,11 +153,12 @@ async function saveSettings() {
     const savedSettings = await apiPut('/settings', settings);
     userData.settings = { ...userData.settings, ...savedSettings };
 
-    // Save per-pair reminder settings
+    // Save per-pair settings (reminder + card order)
     await Promise.all(userData.languagePairs.map(lp =>
       apiPut(`/language-pair/${lp.id}/reminder`, {
         reminderEnabled: lp.reminderEnabled !== false,
-        reminderDays: Array.isArray(lp.reminderDays) ? lp.reminderDays : [0,1,2,3,4,5,6]
+        reminderDays: Array.isArray(lp.reminderDays) ? lp.reminderDays : [0,1,2,3,4,5,6],
+        cardOrder: lp.cardOrder || 'random'
       })
     ));
 

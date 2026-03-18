@@ -59,7 +59,11 @@ function showCurrentCard() {
   }
 
   const card = reviewQueue[currentReviewIndex];
-  isReversed = Math.random() < 0.5;
+  const activePair = userData && userData.languagePairs.find(lp => lp.id === userData.activeLanguagePairId);
+  const cardOrder = activePair && activePair.cardOrder || 'random';
+  if (cardOrder === 'foreign-first') isReversed = false;
+  else if (cardOrder === 'translated-first') isReversed = true;
+  else isReversed = Math.random() < 0.5;
   updateRatingLabels(card);
 
   // Front side
@@ -107,7 +111,6 @@ function showCurrentCard() {
 }
 
 function flipCard() {
-  if (isDragging) return;
   const flashcard = document.getElementById('flashcard');
   flashcard.classList.toggle('flipped');
   isFlipped = !isFlipped;
