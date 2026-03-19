@@ -1,4 +1,14 @@
 /* Card List */
+.card-list-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.card-list-actions .btn {
+  flex: 1;
+}
+
 .card-list {
   flex: 1;
   overflow-y: auto;

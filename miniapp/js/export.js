@@ -1,4 +1,36 @@
 // --- Export ---
+function exportCSV() {
+  if (!activeCards || activeCards.length === 0) {
+    hapticNotify('error');
+    return;
+  }
+  function escapeCSVField(value) {
+    const str = value || '';
+    if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+      return '"' + str.replace(/"/g, '""') + '"';
+    }
+    return str;
+  }
+  const header = 'word,translation,example,pronunciation,imageUrl';
+  const rows = activeCards.map(card => [
+    escapeCSVField(card.front.word),
+    escapeCSVField(card.back.translation),
+    escapeCSVField(card.back.example),
+    escapeCSVField(card.back.pronunciation),
+    escapeCSVField(card.front.imageUrl)
+  ].join(','));
+  const csv = [header, ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ankicards_export_${Date.now()}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  hapticNotify('success');
+}
+
+
 function exportDownload() {
   if (!userData) return;
   const exportData = {
