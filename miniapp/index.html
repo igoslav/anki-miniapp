@@ -58,9 +58,6 @@
       <button class="btn btn-primary btn-large" id="startReviewBtn" onclick="startReview()">
         <span>Start Review</span>
       </button>
-      <button class="btn btn-secondary" onclick="showScreen('importScreen')">
-        <span>Import CSV</span>
-      </button>
     </div>
   </div>
 
@@ -149,6 +146,10 @@
   <!-- Card List Screen -->
   <div id="cardListScreen" class="screen">
     <h2 class="screen-title">My Cards</h2>
+    <div class="card-list-actions">
+      <button class="btn btn-secondary btn-small" onclick="showScreen('importScreen')">Import CSV</button>
+      <button class="btn btn-secondary btn-small" onclick="exportCSV()">Export CSV</button>
+    </div>
     <div id="cardList" class="card-list"></div>
     <div id="emptyCardList" class="empty-state hidden">
       <div class="empty-icon">&#128237;</div>
