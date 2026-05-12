@@ -137,6 +137,27 @@
   margin: 12px 0;
 }
 
+.hint-btn {
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  font-size: 14px;
+  color: var(--tg-theme-link-color, #3390ec);
+  cursor: pointer;
+  text-decoration: underline;
+  margin-bottom: 8px;
+}
+
+.hint-text {
+  text-align: center;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 18px;
+  letter-spacing: 2px;
+  color: var(--tg-theme-text-color, #000);
+  margin-bottom: 12px;
+  white-space: pre-wrap;
+}
+
 /* Rating Buttons */
 .rating-buttons {
   display: flex;
