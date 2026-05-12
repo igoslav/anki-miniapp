@@ -59,6 +59,19 @@ function deleteCard(req, res) {
   res.json({ success: true });
 }
 
+function deleteAllCards(req, res) {
+  const user = db.getUser(req.params.userId);
+  const pairId = req.query.languagePairId || user.activeLanguagePairId;
+  if (!pairId) return res.status(400).json({ error: 'No active language pair' });
+
+  const before = user.cards.length;
+  user.cards = user.cards.filter(c => c.languagePairId !== pairId);
+  const deleted = before - user.cards.length;
+
+  db.saveUser(req.params.userId, user);
+  res.json({ success: true, deleted });
+}
+
 function resetProgress(req, res) {
   const user = db.getUser(req.params.userId);
   const card = user.cards.find(c => c.id === req.params.cardId);
@@ -75,4 +88,4 @@ function resetProgress(req, res) {
   res.json(card);
 }
 
-module.exports = { addCard, importCards, updateCard, deleteCard, resetProgress };
+module.exports = { addCard, importCards, updateCard, deleteCard, deleteAllCards, resetProgress };

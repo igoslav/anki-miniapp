@@ -12,7 +12,7 @@ function renderCardList() {
   listEl.style.display = 'block';
   emptyEl.classList.add('hidden');
 
-  listEl.innerHTML = activeCards.map(card => {
+  const itemsHtml = activeCards.map(card => {
     const nextReview = new Date(card.srs.nextReview);
     const isDue = nextReview <= new Date();
     const statusText = isDue ? 'Due' : `${card.srs.interval}d`;
@@ -31,6 +31,13 @@ function renderCardList() {
       </div>
     `;
   }).join('');
+
+  const footerHtml = `
+    <div class="card-list-footer">
+      <button class="btn btn-danger btn-small" onclick="deleteAllCards()">Delete All Cards</button>
+    </div>
+  `;
+  listEl.innerHTML = itemsHtml + footerHtml;
 }
 
 async function deleteCard(cardId) {
@@ -38,6 +45,21 @@ async function deleteCard(cardId) {
     if (!confirmed) return;
     await apiDelete(`/card/${cardId}`);
     userData.cards = userData.cards.filter(c => c.id !== cardId);
+    activeCards = getActiveCards();
+    renderCardList();
+    hapticNotify('success');
+  });
+}
+
+async function deleteAllCards() {
+  if (activeCards.length === 0) return;
+  const pairId = userData.activeLanguagePairId;
+  const pair = userData.languagePairs.find(p => p.id === pairId);
+  const pairLabel = pair ? `${pair.source} → ${pair.target}` : 'this language pair';
+  tg.showConfirm(`Delete ALL ${activeCards.length} cards from ${pairLabel}? This cannot be undone.`, async (confirmed) => {
+    if (!confirmed) return;
+    await apiDelete('/cards');
+    userData.cards = userData.cards.filter(c => c.languagePairId !== pairId);
     activeCards = getActiveCards();
     renderCardList();
     hapticNotify('success');
