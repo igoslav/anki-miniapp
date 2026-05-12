@@ -53,6 +53,17 @@
   margin-left: 10px;
 }
 
+.card-list-footer {
+  margin-top: 16px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: center;
+}
+
+.card-list-footer .btn {
+  width: 100%;
+}
+
 /* Empty State */
 .empty-state {
   flex: 1;
