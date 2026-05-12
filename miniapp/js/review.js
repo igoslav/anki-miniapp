@@ -111,6 +111,37 @@ function showCurrentCard() {
   document.getElementById('tapHint').textContent = 'Tap card to flip';
   document.getElementById('ratingButtons').classList.remove('visible');
 
+  const hintText = document.getElementById('hintText');
+  hintText.textContent = '';
+  hintText.classList.add('hidden');
+  document.getElementById('hintBtn').classList.remove('hidden');
+
+  haptic('light');
+}
+
+function buildHint(text) {
+  const chars = Array.from(text);
+  const letterIdx = [];
+  chars.forEach((c, i) => { if (/\p{L}/u.test(c)) letterIdx.push(i); });
+  if (letterIdx.length === 0) return text;
+  const first = letterIdx[0];
+  const last = letterIdx[letterIdx.length - 1];
+  return chars.map((c, i) => {
+    if (!/\p{L}/u.test(c)) return c;
+    if (i === first || i === last) return c;
+    return '_';
+  }).join('');
+}
+
+function showHint() {
+  if (isFlipped) return;
+  const card = reviewQueue[currentReviewIndex];
+  if (!card) return;
+  const answer = isReversed ? card.front.word : card.back.translation;
+  const hintEl = document.getElementById('hintText');
+  hintEl.textContent = buildHint(answer || '');
+  hintEl.classList.remove('hidden');
+  document.getElementById('hintBtn').classList.add('hidden');
   haptic('light');
 }
 
@@ -122,9 +153,12 @@ function flipCard() {
   if (isFlipped) {
     document.getElementById('tapHint').textContent = 'Rate your recall';
     document.getElementById('ratingButtons').classList.add('visible');
+    document.getElementById('hintBtn').classList.add('hidden');
+    document.getElementById('hintText').classList.add('hidden');
   } else {
     document.getElementById('tapHint').textContent = 'Tap card to flip';
     document.getElementById('ratingButtons').classList.remove('visible');
+    document.getElementById('hintBtn').classList.remove('hidden');
   }
 
   haptic('medium');
