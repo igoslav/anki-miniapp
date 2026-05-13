@@ -45,6 +45,9 @@ function showScreen(screenId) {
 }
 
 function navTo(screenId) {
+  if (screenId === 'addCardScreen' && editingCardId) {
+    resetCardForm();
+  }
   showScreen(screenId);
 }
 

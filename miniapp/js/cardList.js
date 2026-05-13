@@ -25,6 +25,7 @@ function renderCardList() {
         </div>
         <div class="list-item-actions">
           <span style="font-size:12px;color:var(--tg-theme-hint-color);min-width:30px;text-align:center;">${statusText}</span>
+          <button class="edit-btn" onclick="openEditCard('${card.id}')" title="Edit card">&#9998;</button>
           ${hasProgress ? `<button class="reset-btn" onclick="resetCardProgress('${card.id}')" title="Reset progress">&#8635;</button>` : ''}
           <button class="delete-btn" onclick="deleteCard('${card.id}')">&#128465;</button>
         </div>
