@@ -160,6 +160,17 @@
   font-size: 14px;
 }
 
+/* Edit button */
+.edit-btn {
+  background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+  color: var(--tg-theme-hint-color, #888);
+  border: none;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
 /* Reset progress button */
 .reset-btn {
   background: var(--tg-theme-secondary-bg-color, #f0f0f0);

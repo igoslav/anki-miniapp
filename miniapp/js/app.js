@@ -14,6 +14,7 @@ let isFlipped = false;
 let sessionStats = { reviewed: 0, again: 0, good: 0 };
 let isReversed = false; // true = show translation on front
 let parsedCSVCards = [];
+let editingCardId = null;
 
 // --- Init ---
 async function initApp() {

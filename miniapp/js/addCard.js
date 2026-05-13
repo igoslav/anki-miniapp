@@ -115,12 +115,48 @@ async function addCard(e) {
     return;
   }
 
+  if (editingCardId) {
+    const updated = await apiPut(`/card/${editingCardId}`, { word, translation, example, pronunciation, imageUrl });
+    const idx = userData.cards.findIndex(c => c.id === editingCardId);
+    if (idx !== -1) userData.cards[idx] = updated;
+    activeCards = getActiveCards();
+    resetCardForm();
+    hapticNotify('success');
+    showScreen('cardListScreen');
+    return;
+  }
+
   const card = await apiPost('/card', { word, translation, example, pronunciation, imageUrl });
   userData.cards.push(card);
   activeCards = getActiveCards();
 
-  document.getElementById('addCardForm').reset();
-  clearCardImage();
+  resetCardForm();
   hapticNotify('success');
   showScreen('homeScreen');
+}
+
+function resetCardForm() {
+  document.getElementById('addCardForm').reset();
+  clearCardImage();
+  editingCardId = null;
+  document.getElementById('addCardTitle').textContent = 'Add New Card';
+  document.getElementById('saveCardBtn').textContent = 'Save Card';
+}
+
+function openEditCard(cardId) {
+  const card = userData.cards.find(c => c.id === cardId);
+  if (!card) return;
+  editingCardId = cardId;
+  document.getElementById('inputWord').value = card.front.word || '';
+  document.getElementById('inputTranslation').value = card.back.translation || '';
+  document.getElementById('inputExample').value = card.back.example || '';
+  document.getElementById('inputPronunciation').value = card.back.pronunciation || '';
+  if (card.front.imageUrl) {
+    setCardImage(card.front.imageUrl);
+  } else {
+    clearCardImage();
+  }
+  document.getElementById('addCardTitle').textContent = 'Edit Card';
+  document.getElementById('saveCardBtn').textContent = 'Save Changes';
+  showScreen('addCardScreen');
 }
